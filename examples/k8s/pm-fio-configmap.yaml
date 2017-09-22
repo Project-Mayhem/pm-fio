@@ -1,0 +1,52 @@
+apiVersion: v1
+metadata:
+  name: pm-fio-configmap
+data: 
+  job.fio: |-
+    ; global settings
+    [global]
+    ioengine=libaio
+    rw=randwrite
+    direct=1 
+    filename=/data/test.data
+    runtime=500
+    time_based=0
+    iodepth=64
+    size=100g
+    bs=4k
+    numjobs=1
+    per_job_logs=1
+    [randwrite-4k-100g]
+    name=randwrite-4k-100g
+    write_bw_log=/results/randwrite-4k-100g/bw
+    write_iops_log=/results/randwrite-4k-100g/iops
+    write_lat_log=/results/randwrite-4k-100g/lat
+  script.sh: |-
+    #!/bin/bash
+    JOB_NAME=4krandwrite
+    DATE_WITH_HOUR=`date "+%Y%m%d-%H"`
+    DATE_WITH_TIME=`date "+%Y%m%d-%H%M%S"`
+    RESULTS_DIR=/results
+    FILENAME="/$RESULTS_DIR/${JOB_NAME}_$HOSTNAME_$DATE_WITH_TIME.out"
+    echo "set environment: `env`"
+    echo "----"
+    echo "Starting fio job"
+    mkdir -p $RESULTS_DIR
+    #
+    /usr/bin/fio /scripts/job.fio --output=$FILENAME
+    echo "Done with test."
+    echo "Moving file $FILENAME to host $TARGET_HOST"
+    #
+    cd $RESULTS_DIR
+    echo "Creating plots"
+    fio2gnuplot -b -g 
+    fio2gnuplot -i -g 
+    cd /
+    echo "creating archive: `echo $HOSTNAME`-test.tgz"
+    tar cvzf `echo $HOSTNAME`-test.tgz $RESULTS_DIR
+    # 
+    echo "Curling archive to $WWW_TARGET_HOST"
+    curl -X POST -H "Content-Type: application/x-tar" --data-binary  @$FILENAME $WWW_TARGET_HOST/$DATE_WITH_HOUR/$JOB_NAME/$HOSTNAME/$FILENAME.tgz
+    # 
+    sleep $SLEEP_DELAY
+kind: ConfigMap

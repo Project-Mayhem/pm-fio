@@ -1,0 +1,72 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    component: pm-fio-deployment
+  name: pm-fio-deployment
+  namespace: meadowgate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: pm-fio-deployment
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        component: pm-fio-deployment
+    spec:
+      containers:
+      - env:
+        - name: SLEEP_DELAY
+          value: 10m
+        - name: WWW_TARGET_HOST
+          value: <ip and port>
+        image: falenn/pm-fio:1.0.9
+        imagePullPolicy: IfNotPresent
+        name: pm-fio-container
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - mountPath: /home/fio/.ssh
+          name: scp-secret-idrsa
+        - mountPath: /data
+          name: fio-data-volume
+        - mountPath: /scripts
+          name: pm-fio-script-configmap
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: scp-secret
+        secret:
+          defaultMode: 420
+          secretName: scp-secret
+      - name: scp-secret-idrsa
+        secret:
+          defaultMode: 420
+          items:
+          - key: id_rsa
+            path: id_rsa
+          - key: id_rsa.pub
+            path: id_rsa.pub
+          secretName: scp-secret
+      - name: fio-data-volume
+        persistentVolumeClaim:
+          claimName: pm-fio-pvc-ceph
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: script.sh
+            path: script.sh
+          - key: job.fio
+            path: job.fio
+          name: pm-fio-configmap
+        name: pm-fio-script-configmap

@@ -1,0 +1,48 @@
+# Logstash deployment that only deploys the sidecar.  This is for testing.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pm-fio-job
+  labels:
+    component: pm-fio-job
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: pm-fio
+    spec:
+      containers:
+      # Fio Tester
+      - name: pm-fio-container
+        image: falenn/pm-fio:1.0.0
+        env:
+        - name: SCP_TARGET_HOST
+          value: <server>
+        - name: SCP_TARGET_PATH
+          value: <dir>
+        volumeMounts:
+        - name: scp-secret
+          mountPath: "/home/fio"
+          readOnly: true
+        - name: fio-test-data-volume 
+          mountPath: "/data"
+        - name: pm-fio-configmap
+          mountPath: "/config"  
+      restartPolicy: Never  
+      volumes:
+      - name: scp-secret
+        secret:
+          secretName: "scp-secret"
+      - name: fio-test-data-volume
+        persistentVolumeClaim:
+         claimName: pm-fio-test-pvc-ceph
+      - name: pm-fio-configmap
+        configMap:
+          name: pm-fio-configmap
+          items:
+          - key: job.fio
+            path: job.fio
+         
+     
+  
