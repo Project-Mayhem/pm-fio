@@ -7,14 +7,14 @@ REPO_AND_IMAGE='falenn/pm-fio:1.0.9'
 CONTAINER_NAME='pm-fio'
 
 # remove built image for rebuild
-docker rmi $(docker images | grep -v $REPO_AND_IMAGE | awk {'print $3'})
+docker rmi $(docker images | grep -v $REPO_AND_IMAGE | awk { 'print $3' })
 # docker rmi $(docker images | awk {'print $3'})
 # remove any images that are left around
 # docker rmi $(docker images -f dangling=true -q)
 
 # remove any existing stopped containers
-docker ps -a | awk '{print $1}' | xargs docker rm
-docker ps -a | awk '{ print $1,$2 }' | grep $REPO_AND_IMAGE | awk '{print $1 }' | xargs -I {} docker rm -f {}
+docker ps -a | awk '{ print $1 }' | xargs docker rm
+docker ps -a | awk '{ print $1,$2 }' | grep $REPO_AND_IMAGE | awk '{ print $1 }' | xargs -I {} docker rm -f {}
 
 # build the image, removing intermediate layers, deleting cache
 # docker build --rm --no-cache -t "$REPO_AND_IMAGE" .

@@ -16,11 +16,11 @@ spec:
       # Fio Tester
       - name: pm-fio-container
         image: falenn/pm-fio:1.0.0
-        env:
-        - name: SCP_TARGET_HOST
-          value: <server>
-        - name: SCP_TARGET_PATH
-          value: <dir>
+      - env:
+        - name: WWW_TARGET_HOST
+          value: 10.50.100.5:8080
+        - name: SLEEP_DELAY
+          value: 60m
         volumeMounts:
         - name: scp-secret
           mountPath: "/home/fio"

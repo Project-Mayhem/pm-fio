@@ -16,6 +16,8 @@ RUN apt-get update -yq \
  && apt-get install -yq vim \
  && apt-get install -yq s3cmd \
  && apt-get install -yq sshpass;
+ 
+
 
 RUN mkdir -p /mongo \
  && curl https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.4.9.tgz | tar xz -C /mongo \

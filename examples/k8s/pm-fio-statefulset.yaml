@@ -4,17 +4,18 @@ metadata:
   name: pm-fio-ss
 spec:
   serviceName: "pm-fio-ss"
-  replicas: 1
+  replicas: 100
+  podManagementPolicy: Parallel
   template:
     metadata:
       labels:
-        app: pm-fio
+        app: pm-fio-ss
     spec:
       terminationGracePeriodSeconds: 10
       containers:
       - env:
         - name: WWW_TARGET_HOST
-          value: <host ip>
+          value: http://10.50.100.5:8080
         - name: SLEEP_DELAY
           value: 60m
         image: falenn/pm-fio:1.0.9
@@ -26,7 +27,7 @@ spec:
         - name: pm-fio-ss-pvc-ceph
           mountPath: /data
         - name: pm-fio-script-configmap
-          mountPath: /scripts
+          mountPath: /scripts 
       volumes:
       - configMap:
           defaultMode: 420
@@ -42,6 +43,8 @@ spec:
       name: pm-fio-ss-pvc-ceph
       annotations:
         v1.storage.k8s.io/storage-class: ceph
+      labels:
+        app: pm-fio-ss 
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: ceph
